@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#000000"><title>Aliado 2 — Velocidade GPS</title>
+<style>
+:root{color-scheme:dark}*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;background:#000;color:#fff;font-family:Arial,Roboto,sans-serif}main{height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:12px 12px 18px;overflow:hidden}.top{font-size:clamp(13px,2.5vw,23px);letter-spacing:.13em;font-weight:700;color:#c7c7c7;text-align:center}.value{font-size:min(62vw,66dvh);font-weight:800;line-height:.88;letter-spacing:-.075em;font-variant-numeric:tabular-nums;white-space:nowrap;transform:translateX(-.025em)}.bottom{width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px}.unit{font-size:clamp(22px,5vw,44px);font-weight:800}.status{font-size:clamp(12px,2vw,18px);color:#bbb;text-align:right}button{border:1px solid #777;border-radius:8px;background:#202020;color:white;padding:10px 14px;font-size:16px;cursor:pointer}#start{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:clamp(20px,4vw,30px);padding:18px 28px;white-space:nowrap}#note{position:absolute;bottom:72px;max-width:90vw;text-align:center;color:#fbb;font-size:15px} .hidden{display:none!important}@media(orientation:portrait){.value{font-size:min(60vw,39dvh)}main{justify-content:space-around}.bottom{margin-top:auto}}
+</style></head>
+<body><main><div class="top">ALIADO 2 · GPS · SOG</div><div id="value" class="value">--.-</div><div class="bottom"><div class="unit">NÓS</div><div id="status" class="status" aria-live="polite">Aguardando início</div></div></main><button id="start">Iniciar GPS</button><div id="note"></div>
+<script>
+'use strict';
+const val=document.getElementById('value'),status=document.getElementById('status'),start=document.getElementById('start'),note=document.getElementById('note');
+let watch=null,lastFix=0,lastPoint=null,lastSpeed=null,wake=null;
+const knots=1.94384449244;
+function haversine(a,b){const R=6371000,toRad=Math.PI/180,dLat=(b.lat-a.lat)*toRad,dLon=(b.lon-a.lon)*toRad,x=Math.sin(dLat/2)**2+Math.cos(a.lat*toRad)*Math.cos(b.lat*toRad)*Math.sin(dLon/2)**2;return 2*R*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));}
+function onPosition(p){let c=p.coords;lastFix=Date.now();let speed=(typeof c.speed==='number'&&Number.isFinite(c.speed)&&c.speed>=0)?c.speed:null;
+// Fallback when Android does not supply speed: estimate from successive GPS fixes.
+if(speed===null&&lastPoint){const dt=(p.timestamp-lastPoint.t)/1000;if(dt>=2&&dt<=30&&c.accuracy<=35&&lastPoint.accuracy<=35){let distance=haversine(lastPoint,{lat:c.latitude,lon:c.longitude});if(distance>Math.max(4,(c.accuracy+lastPoint.accuracy)*.4))speed=distance/dt;}}
+lastPoint={lat:c.latitude,lon:c.longitude,t:p.timestamp,accuracy:c.accuracy};
+if(speed!==null){lastSpeed=speed*knots;val.textContent=lastSpeed.toFixed(1);status.textContent='GPS ativo · ±'+Math.round(c.accuracy)+' m';}else{status.textContent='GPS ativo · calculando velocidade';}
+note.textContent='';}
+function onError(e){status.textContent='GPS indisponível';note.textContent=({1:'Permita o acesso à localização nas configurações do Chrome.',2:'Não foi possível obter a posição. Verifique se a localização está ativada.',3:'GPS demorando a responder; aguarde em local aberto.'})[e.code]||e.message;}
+async function begin(){note.textContent='';if(!navigator.geolocation){note.textContent='Este navegador não disponibiliza GPS nesta página. Abra-a por HTTPS.';return;}start.classList.add('hidden');status.textContent='Procurando satélites…';watch=navigator.geolocation.watchPosition(onPosition,onError,{enableHighAccuracy:true,maximumAge:0,timeout:20000});try{if('wakeLock'in navigator)wake=await navigator.wakeLock.request('screen');}catch(e){/* optional */}}
+start.addEventListener('click',begin);
+document.addEventListener('visibilitychange',async()=>{if(document.visibilityState==='visible'&&watch!==null&&'wakeLock'in navigator){try{wake=await navigator.wakeLock.request('screen');}catch(e){}}});
+setInterval(()=>{if(watch!==null&&lastFix&&Date.now()-lastFix>12000){val.textContent='--.-';status.textContent='Sem posição recente';}},2000);
+</script></body></html>
