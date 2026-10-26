@@ -16,23 +16,50 @@ main{padding:8px 12px 14px;justify-content:space-between}
 .status{color:var(--muted)}
 #theme{position:fixed;top:8px;right:8px;z-index:5;border:1px solid var(--muted);border-radius:8px;background:var(--btnbg);color:var(--fg);padding:8px 10px;font-size:clamp(11px,1.8vw,15px)}
 @media(orientation:portrait){main{justify-content:space-between}.value{font-size:min(83vw,54dvh)}.bottom{margin-top:0}}
+
+/* Painel lateral de estatísticas */
+.readings{width:100%;flex:1;min-height:0;display:flex;align-items:center;justify-content:center;gap:1.5vw}
+.value{flex:1;min-width:0;width:auto;align-self:auto}
+.stats{flex:0 0 18%;min-width:88px;display:flex;flex-direction:column;gap:clamp(12px,3vh,32px);align-items:center;justify-content:center}
+.stat{text-align:center;width:100%}.stat-label{font-size:clamp(11px,1.6vw,17px);font-weight:700;color:var(--muted)}
+.stat-number{font-size:clamp(27px,5vw,65px);font-weight:800;line-height:1.1;font-variant-numeric:tabular-nums}
+#reset{position:fixed;right:8px;bottom:54px;z-index:5;border:1px solid var(--muted);border-radius:8px;background:var(--btnbg);color:var(--fg);padding:7px 10px;font-size:clamp(11px,1.6vw,15px)}
+@media(max-width:550px){.stats{flex-basis:22%;min-width:75px}.stat-number{font-size:clamp(22px,6vw,40px)}}
 </style></head>
-<body><button id="theme" type="button" aria-label="Alternar cores">Fundo branco</button><main><div class="top">ALIADO 2 · GPS · SOG</div><div id="value" class="value">--.-</div><div class="bottom"><div class="unit">NÓS</div><div id="status" class="status" aria-live="polite">Aguardando início</div></div></main><button id="start">Iniciar GPS</button><div id="note"></div>
+<body><button id="theme" type="button" aria-label="Alternar cores">Fundo branco</button><button id="reset" type="button">Zerar</button><main><div class="top">ALIADO 2 · GPS · SOG</div><div class="readings"><div id="value" class="value">--.-</div><div class="stats"><div class="stat"><div class="stat-label">MÁX</div><div id="maxspeed" class="stat-number">--.-</div></div><div class="stat"><div class="stat-label">MÉDIA</div><div id="avgspeed" class="stat-number">--.-</div></div></div></div><div class="bottom"><div class="unit">NÓS</div><div id="status" class="status" aria-live="polite">Aguardando início</div></div></main><button id="start">Iniciar GPS</button><div id="note"></div>
 <script>
 'use strict';
 const val=document.getElementById('value'),status=document.getElementById('status'),start=document.getElementById('start'),note=document.getElementById('note');
 let watch=null,lastFix=0,lastPoint=null,lastSpeed=null,wake=null;
 const knots=1.94384449244;
+const maxEl=document.getElementById('maxspeed'),avgEl=document.getElementById('avgspeed');
+let sessionStart=null,previousSample=null,weightedSpeed=0,validSeconds=0,maxSpeed=null;
+function resetStats(){sessionStart=null;previousSample=null;weightedSpeed=0;validSeconds=0;maxSpeed=null;maxEl.textContent='--.-';avgEl.textContent='--.-';}
+document.getElementById('reset').addEventListener('click',resetStats);
+function addSample(speed,time){
+ if(sessionStart===null)sessionStart=time;
+ if(previousSample!==null){
+   const dt=(time-previousSample.time)/1000;
+   if(dt>0&&dt<=30){weightedSpeed+=((speed+previousSample.speed)/2)*dt;validSeconds+=dt;}
+ }
+ previousSample={speed,time};
+ maxSpeed=Math.max(maxSpeed===null?0:maxSpeed,speed);
+ maxEl.textContent=maxSpeed.toFixed(1);
+ avgEl.textContent=validSeconds>0?(weightedSpeed/validSeconds).toFixed(1):'--.-';
+}
+
 const themeButton=document.getElementById('theme');
 function setTheme(light){document.body.classList.toggle('light',light);themeButton.textContent=light?'Fundo preto':'Fundo branco';document.querySelector('meta[name="theme-color"]').content=light?'#ffffff':'#000000';try{localStorage.setItem('aliado-theme',light?'light':'dark')}catch(e){}}
 try{setTheme(localStorage.getItem('aliado-theme')==='light')}catch(e){setTheme(false)}
 themeButton.addEventListener('click',()=>setTheme(!document.body.classList.contains('light')));
 function fitValue(){
-  const maxWidth=window.innerWidth*0.95;
-  const maxHeight=window.innerHeight*0.70;
-  let size=Math.min(window.innerWidth*0.85,maxHeight);
-  val.style.fontSize=size+'px';
-  for(let i=0;i<12&&val.scrollWidth>maxWidth;i++){size*=0.9;val.style.fontSize=size+'px';}
+ const area=document.querySelector('.readings');
+ const stats=document.querySelector('.stats');
+ const maxWidth=Math.max(70,area.clientWidth-stats.offsetWidth-12);
+ const maxHeight=Math.max(60,area.clientHeight*.92);
+ let size=Math.min(maxWidth*.62,maxHeight);
+ val.style.fontSize=size+'px';
+ for(let i=0;i<22&&val.scrollWidth>maxWidth;i++){size*=.91;val.style.fontSize=size+'px';}
 }
 window.addEventListener('resize',fitValue);
 
@@ -41,7 +68,7 @@ function onPosition(p){let c=p.coords;lastFix=Date.now();let speed=(typeof c.spe
 // Fallback when Android does not supply speed: estimate from successive GPS fixes.
 if(speed===null&&lastPoint){const dt=(p.timestamp-lastPoint.t)/1000;if(dt>=2&&dt<=30&&c.accuracy<=35&&lastPoint.accuracy<=35){let distance=haversine(lastPoint,{lat:c.latitude,lon:c.longitude});if(distance>Math.max(4,(c.accuracy+lastPoint.accuracy)*.4))speed=distance/dt;}}
 lastPoint={lat:c.latitude,lon:c.longitude,t:p.timestamp,accuracy:c.accuracy};
-if(speed!==null){lastSpeed=speed*knots;val.textContent=lastSpeed.toFixed(1);fitValue();status.textContent='GPS ativo · ±'+Math.round(c.accuracy)+' m';}else{status.textContent='GPS ativo · calculando velocidade';}
+if(speed!==null){lastSpeed=speed*knots;addSample(lastSpeed,p.timestamp);val.textContent=lastSpeed.toFixed(1);fitValue();status.textContent='GPS ativo · ±'+Math.round(c.accuracy)+' m';}else{status.textContent='GPS ativo · calculando velocidade';}
 note.textContent='';}
 function onError(e){status.textContent='GPS indisponível';note.textContent=({1:'Permita o acesso à localização nas configurações do Chrome.',2:'Não foi possível obter a posição. Verifique se a localização está ativada.',3:'GPS demorando a responder; aguarde em local aberto.'})[e.code]||e.message;}
 async function begin(){note.textContent='';if(!navigator.geolocation){note.textContent='Este navegador não disponibiliza GPS nesta página. Abra-a por HTTPS.';return;}start.classList.add('hidden');status.textContent='Procurando satélites…';watch=navigator.geolocation.watchPosition(onPosition,onError,{enableHighAccuracy:true,maximumAge:0,timeout:20000});try{if('wakeLock'in navigator)wake=await navigator.wakeLock.request('screen');}catch(e){/* optional */}}
