@@ -24,7 +24,7 @@ button{border:1px solid #777;border-radius:8px;background:var(--btnbg);color:var
 #note{position:fixed;bottom:72px;left:5%;width:90%;text-align:center;color:#e77;font-size:15px}
 .hidden{display:none!important}
 </style></head>
-<body><button id="theme" type="button" aria-label="Alternar cores">Fundo branco</button><button id="reset" type="button">Zerar</button><main><div class="top">ALIADO 2 · GPS · SOG <span style="font-size:10px;letter-spacing:0;opacity:.65">v9</span></div><div class="readings"><div class="stat side left"><div class="stat-label">MÁX</div><div id="maxspeed" class="stat-number">--.-</div></div><div id="value" class="value">--.-</div><div class="stat side right"><div class="stat-label">MÉDIA</div><div id="avgspeed" class="stat-number">--.-</div></div></div><div class="bottom"><div class="unit">NÓS</div><div id="status" class="status" aria-live="polite">Aguardando início</div></div></main><button id="start">Iniciar GPS</button><div id="note"></div>
+<body><button id="theme" type="button" aria-label="Alternar cores">Fundo branco</button><button id="reset" type="button">Zerar</button><main><div class="top">ALIADO 2 · GPS · SOG <span style="font-size:10px;letter-spacing:0;opacity:.65">v10</span></div><div class="readings"><div class="stat side left"><div class="stat-label">MÁX</div><div id="maxspeed" class="stat-number">--.-</div></div><div id="value" class="value">--.-</div><div class="stat side right"><div class="stat-label">MÉDIA</div><div id="avgspeed" class="stat-number">--.-</div></div></div><div class="bottom"><div class="unit">NÓS</div><div id="status" class="status" aria-live="polite">Aguardando início</div></div></main><button id="start">Iniciar GPS</button><div id="note"></div>
 <script>
 'use strict';
 const val=document.getElementById('value'),status=document.getElementById('status'),start=document.getElementById('start'),note=document.getElementById('note');
@@ -81,5 +81,8 @@ document.addEventListener('visibilitychange',async()=>{if(document.visibilitySta
 setInterval(()=>{if(watch!==null&&lastFix&&Date.now()-lastFix>12000){val.textContent='--.-';fitValue();status.textContent='Sem posição recente';}},2000);
 fitValue();
 window.addEventListener("load",fitValue);
+if('serviceWorker' in navigator){
+ navigator.serviceWorker.register('./sw.js').catch(()=>{});
+}
 setTimeout(fitValue,500);
 </script></body></html>
