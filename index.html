@@ -40,8 +40,15 @@ main{padding:8px 12px 14px;justify-content:space-between}
 /* v6: dimensionar pelo painel, não pela largura intrínseca do número */
 .readings{flex:1;min-height:0;height:auto!important}
 .readings .value{font-size:120px}
+/* v7: centralização absoluta independente do flex/grid anterior */
+main{position:relative!important;display:block!important;height:100dvh!important}
+.readings{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;display:grid!important;grid-template-columns:12% 76% 12%!important;align-items:center!important;justify-items:center!important;flex:none!important;min-height:0!important}
+.readings .value{grid-column:2!important;position:static!important;display:block!important;line-height:1!important;overflow:visible!important}
+.readings .left{grid-column:1!important}.readings .right{grid-column:3!important}
+.top{position:absolute!important;top:8px;left:0;right:0;z-index:2}
+.bottom{position:absolute!important;bottom:14px;left:12px;right:12px;width:auto!important;z-index:2}
 </style></head>
-<body><button id="theme" type="button" aria-label="Alternar cores">Fundo branco</button><button id="reset" type="button">Zerar</button><main><div class="top">ALIADO 2 · GPS · SOG <span style="font-size:10px;letter-spacing:0;opacity:.65">v6</span></div><div class="readings"><div class="stat side left"><div class="stat-label">MÁX</div><div id="maxspeed" class="stat-number">--.-</div></div><div id="value" class="value">--.-</div><div class="stat side right"><div class="stat-label">MÉDIA</div><div id="avgspeed" class="stat-number">--.-</div></div></div><div class="bottom"><div class="unit">NÓS</div><div id="status" class="status" aria-live="polite">Aguardando início</div></div></main><button id="start">Iniciar GPS</button><div id="note"></div>
+<body><button id="theme" type="button" aria-label="Alternar cores">Fundo branco</button><button id="reset" type="button">Zerar</button><main><div class="top">ALIADO 2 · GPS · SOG <span style="font-size:10px;letter-spacing:0;opacity:.65">v7</span></div><div class="readings"><div class="stat side left"><div class="stat-label">MÁX</div><div id="maxspeed" class="stat-number">--.-</div></div><div id="value" class="value">--.-</div><div class="stat side right"><div class="stat-label">MÉDIA</div><div id="avgspeed" class="stat-number">--.-</div></div></div><div class="bottom"><div class="unit">NÓS</div><div id="status" class="status" aria-live="polite">Aguardando início</div></div></main><button id="start">Iniciar GPS</button><div id="note"></div>
 <script>
 'use strict';
 const val=document.getElementById('value'),status=document.getElementById('status'),start=document.getElementById('start'),note=document.getElementById('note');
@@ -68,20 +75,18 @@ function setTheme(light){document.body.classList.toggle('light',light);themeButt
 try{setTheme(localStorage.getItem('aliado-theme')==='light')}catch(e){setTheme(false)}
 themeButton.addEventListener('click',()=>setTheme(!document.body.classList.contains('light')));
 function fitValue(){
- const area=document.querySelector('.readings');
- const width=area.clientWidth;
- const height=area.clientHeight;
- const availableWidth=Math.max(80,width-2*Math.max(54,width*.12)-12);
- const availableHeight=Math.max(70,height*.86);
+ const w=window.innerWidth,h=window.innerHeight;
+ const availableWidth=w*.74;
+ const availableHeight=h*.70;
  const canvas=fitValue.canvas||(fitValue.canvas=document.createElement('canvas'));
  const ctx=canvas.getContext('2d');
- let size=Math.min(availableHeight,availableWidth*.75);
- for(let i=0;i<60;i++){
+ let size=Math.floor(availableHeight);
+ while(size>20){
   ctx.font='800 '+size+'px Arial';
-  if(ctx.measureText('8.8').width<=availableWidth*.96)break;
-  size*=.95;
+  if(ctx.measureText('8.8').width<=availableWidth)break;
+  size-=2;
  }
- val.style.fontSize=Math.round(size)+'px';
+ val.style.setProperty('font-size',size+'px','important');
 }
 window.addEventListener('resize',fitValue);
 
