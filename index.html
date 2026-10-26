@@ -19,7 +19,7 @@ main{padding:8px 12px 14px;justify-content:space-between}
 
 /* Painel lateral de estatísticas */
 .readings{width:100%;flex:1;min-height:0;display:flex;align-items:center;justify-content:center;gap:1.5vw}
-.value{flex:1;min-width:0;width:auto;align-self:auto}
+.value{flex:1;min-width:0;width:auto;align-self:auto;overflow:visible}
 .stats{flex:0 0 18%;min-width:88px;display:flex;flex-direction:column;gap:clamp(12px,3vh,32px);align-items:center;justify-content:center}
 .stat{text-align:center;width:100%}.stat-label{font-size:clamp(11px,1.6vw,17px);font-weight:700;color:var(--muted)}
 .stat-number{font-size:clamp(27px,5vw,65px);font-weight:800;line-height:1.1;font-variant-numeric:tabular-nums}
@@ -55,11 +55,11 @@ themeButton.addEventListener('click',()=>setTheme(!document.body.classList.conta
 function fitValue(){
  const area=document.querySelector('.readings');
  const stats=document.querySelector('.stats');
- const maxWidth=Math.max(70,area.clientWidth-stats.offsetWidth-12);
+ const maxWidth=Math.max(70,area.clientWidth-stats.offsetWidth-8);
  const maxHeight=Math.max(60,area.clientHeight*.92);
- let size=Math.min(maxWidth*.62,maxHeight);
+ let size=Math.min(maxWidth*1.12,maxHeight);
  val.style.fontSize=size+'px';
- for(let i=0;i<22&&val.scrollWidth>maxWidth;i++){size*=.91;val.style.fontSize=size+'px';}
+ for(let i=0;i<30&&val.scrollWidth>maxWidth;i++){size*=.94;val.style.fontSize=size+'px';}
 }
 window.addEventListener('resize',fitValue);
 
