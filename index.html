@@ -33,8 +33,12 @@ main{padding:8px 12px 14px;justify-content:space-between}
 .readings .side .stat-number{font-size:clamp(20px,3.5vw,42px)}
 .readings .value{flex:1 1 auto;min-width:0;text-align:center;line-height:.95;letter-spacing:-.075em;white-space:nowrap}
 @media(max-width:550px){.readings .side{flex-basis:12%;min-width:51px}.readings .side .stat-number{font-size:clamp(18px,4.5vw,30px)}}
+/* v5: impedir encolhimento por flex e centralizar painel na tela dividida */
+.readings{display:grid!important;grid-template-columns: minmax(54px,12%) minmax(0,1fr) minmax(54px,12%);align-items:center!important;justify-items:center;width:100%;height:100%;min-height:0}
+.readings .side{width:100%;min-width:0;max-width:none;flex:none}
+.readings .value{display:block;flex:none!important;width:auto!important;min-width:0;max-width:100%;overflow:visible;align-self:center}
 </style></head>
-<body><button id="theme" type="button" aria-label="Alternar cores">Fundo branco</button><button id="reset" type="button">Zerar</button><main><div class="top">ALIADO 2 · GPS · SOG <span style="font-size:10px;letter-spacing:0;opacity:.65">v4</span></div><div class="readings"><div class="stat side left"><div class="stat-label">MÁX</div><div id="maxspeed" class="stat-number">--.-</div></div><div id="value" class="value">--.-</div><div class="stat side right"><div class="stat-label">MÉDIA</div><div id="avgspeed" class="stat-number">--.-</div></div></div><div class="bottom"><div class="unit">NÓS</div><div id="status" class="status" aria-live="polite">Aguardando início</div></div></main><button id="start">Iniciar GPS</button><div id="note"></div>
+<body><button id="theme" type="button" aria-label="Alternar cores">Fundo branco</button><button id="reset" type="button">Zerar</button><main><div class="top">ALIADO 2 · GPS · SOG <span style="font-size:10px;letter-spacing:0;opacity:.65">v5</span></div><div class="readings"><div class="stat side left"><div class="stat-label">MÁX</div><div id="maxspeed" class="stat-number">--.-</div></div><div id="value" class="value">--.-</div><div class="stat side right"><div class="stat-label">MÉDIA</div><div id="avgspeed" class="stat-number">--.-</div></div></div><div class="bottom"><div class="unit">NÓS</div><div id="status" class="status" aria-live="polite">Aguardando início</div></div></main><button id="start">Iniciar GPS</button><div id="note"></div>
 <script>
 'use strict';
 const val=document.getElementById('value'),status=document.getElementById('status'),start=document.getElementById('start'),note=document.getElementById('note');
@@ -62,20 +66,20 @@ try{setTheme(localStorage.getItem('aliado-theme')==='light')}catch(e){setTheme(f
 themeButton.addEventListener('click',()=>setTheme(!document.body.classList.contains('light')));
 function fitValue(){
  const area=document.querySelector('.readings');
- const sides=[...document.querySelectorAll('.side')];
- const width=Math.max(80,area.getBoundingClientRect().width-sides.reduce((n,e)=>n+e.getBoundingClientRect().width,0)-12);
- const height=Math.max(70,area.getBoundingClientRect().height*.9);
+ const center=area.children[1];
+ const availableWidth=Math.max(80,center.getBoundingClientRect().width || area.clientWidth*.72);
+ const availableHeight=Math.max(80,area.getBoundingClientRect().height*.82);
  const canvas=fitValue.canvas||(fitValue.canvas=document.createElement('canvas'));
  const ctx=canvas.getContext('2d');
- let size=Math.min(height*1.1,width);
+ let size=Math.min(availableHeight*1.1,availableWidth);
  for(let i=0;i<50;i++){
-   ctx.font='800 '+size+'px Arial';
-   if(ctx.measureText('8.8').width<=width && size*.85<=height)break;
-   size*=.94;
+  ctx.font='800 '+size+'px Arial';
+  if(ctx.measureText('8.8').width<=availableWidth*.97 && size*.9<=availableHeight)break;
+  size*=.94;
  }
  val.style.fontSize=Math.round(size)+'px';
- val.style.width=width+'px';
- val.style.flex='0 0 '+width+'px';
+ val.style.removeProperty('width');
+ val.style.removeProperty('flex');
 }
 window.addEventListener('resize',fitValue);
 
