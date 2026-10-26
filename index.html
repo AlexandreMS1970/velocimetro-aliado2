@@ -3,55 +3,28 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#000000"><title>Aliado 2 — Velocidade GPS</title>
-<style>
-:root{color-scheme:dark}*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;background:#000;color:#fff;font-family:Arial,Roboto,sans-serif}main{height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:12px 12px 18px;overflow:hidden}.top{font-size:clamp(13px,2.5vw,23px);letter-spacing:.13em;font-weight:700;color:#c7c7c7;text-align:center}.value{font-size:min(62vw,66dvh);font-weight:800;line-height:.88;letter-spacing:-.075em;font-variant-numeric:tabular-nums;white-space:nowrap;transform:translateX(-.025em)}.bottom{width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px}.unit{font-size:clamp(22px,5vw,44px);font-weight:800}.status{font-size:clamp(12px,2vw,18px);color:#bbb;text-align:right}button{border:1px solid #777;border-radius:8px;background:#202020;color:white;padding:10px 14px;font-size:16px;cursor:pointer}#start{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:clamp(20px,4vw,30px);padding:18px 28px;white-space:nowrap}#note{position:absolute;bottom:72px;max-width:90vw;text-align:center;color:#fbb;font-size:15px} .hidden{display:none!important}@media(orientation:portrait){.value{font-size:min(60vw,39dvh)}main{justify-content:space-around}.bottom{margin-top:auto}}
-
-/* Display de alto contraste, com dimensões adaptáveis ao tablet */
-:root{--bg:#000;--fg:#fff;--muted:#bbb;--btnbg:#222}
+<style>:root{--bg:#000;--fg:#fff;--muted:#bbb;--btnbg:#222}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;background:var(--bg);color:var(--fg);font-family:Arial,sans-serif}
 body.light{--bg:#fff;--fg:#000;--muted:#333;--btnbg:#eee}
-html,body{background:var(--bg);color:var(--fg);color-scheme:normal}
-main{padding:8px 12px 14px;justify-content:space-between}
-.top{font-size:clamp(12px,1.8vw,19px);color:var(--muted);padding-right:105px}
-.value{font-size:min(83vw,72dvh);line-height:1;letter-spacing:-.065em;transform:none;align-self:center;text-align:center}
-.status{color:var(--muted)}
-#theme{position:fixed;top:8px;right:8px;z-index:5;border:1px solid var(--muted);border-radius:8px;background:var(--btnbg);color:var(--fg);padding:8px 10px;font-size:clamp(11px,1.8vw,15px)}
-@media(orientation:portrait){main{justify-content:space-between}.value{font-size:min(83vw,54dvh)}.bottom{margin-top:0}}
-
-/* Painel lateral de estatísticas */
-.readings{width:100%;flex:1;min-height:0;display:flex;align-items:center;justify-content:center;gap:1.5vw}
-.value{flex:1;min-width:0;width:auto;align-self:auto;overflow:visible}
-.stats{flex:0 0 18%;min-width:88px;display:flex;flex-direction:column;gap:clamp(12px,3vh,32px);align-items:center;justify-content:center}
-.stat{text-align:center;width:100%}.stat-label{font-size:clamp(11px,1.6vw,17px);font-weight:700;color:var(--muted)}
-.stat-number{font-size:clamp(27px,5vw,65px);font-weight:800;line-height:1.1;font-variant-numeric:tabular-nums}
-#reset{position:fixed;right:8px;bottom:54px;z-index:5;border:1px solid var(--muted);border-radius:8px;background:var(--btnbg);color:var(--fg);padding:7px 10px;font-size:clamp(11px,1.6vw,15px)}
-@media(max-width:550px){.stats{flex-basis:22%;min-width:75px}.stat-number{font-size:clamp(22px,6vw,40px)}}
-
-/* Três colunas: máxima | velocidade principal | média */
-.readings{gap:4px;justify-content:space-between;align-items:center}
-.readings .side{flex:0 0 12%;min-width:58px;max-width:95px;align-self:center}
-.readings .side .stat-label{font-size:clamp(10px,1.4vw,15px)}
-.readings .side .stat-number{font-size:clamp(20px,3.5vw,42px)}
-.readings .value{flex:1 1 auto;min-width:0;text-align:center;line-height:.95;letter-spacing:-.075em;white-space:nowrap}
-@media(max-width:550px){.readings .side{flex-basis:12%;min-width:51px}.readings .side .stat-number{font-size:clamp(18px,4.5vw,30px)}}
-/* v5: impedir encolhimento por flex e centralizar painel na tela dividida */
-.readings{display:grid!important;grid-template-columns: minmax(54px,12%) minmax(0,1fr) minmax(54px,12%);align-items:center!important;justify-items:center;width:100%;height:100%;min-height:0}
-.readings .side{width:100%;min-width:0;max-width:none;flex:none}
-.readings .value{display:block;flex:none!important;width:auto!important;min-width:0;max-width:100%;overflow:visible;align-self:center}
-/* v6: dimensionar pelo painel, não pela largura intrínseca do número */
-.readings{flex:1;min-height:0;height:auto!important}
-.readings .value{font-size:120px}
-/* v8: layout simples, sem posicionamento absoluto do painel */
-main{display:flex!important;position:relative!important;flex-direction:column!important;height:100dvh!important;justify-content:space-between!important}
-.readings{position:relative!important;inset:auto!important;display:grid!important;grid-template-columns:12% minmax(0,76%) 12%!important;width:100%!important;height:auto!important;flex:1 1 auto!important;align-items:center!important;justify-items:center!important}
-.readings .side{position:static!important;display:block!important;color:var(--fg)!important}
-.readings .value{position:static!important;display:block!important;grid-column:2!important;color:var(--fg)!important;opacity:1!important;visibility:visible!important;line-height:1!important}
-.readings .left{grid-column:1!important;grid-row:1!important}
-.readings .right{grid-column:3!important;grid-row:1!important}
-.readings .value{grid-row:1!important}
-.top,.bottom{position:static!important;display:flex;flex:none!important}
-.top{display:block}
+main{height:100vh;width:100%;position:relative;overflow:hidden;padding:0}
+.top{position:absolute;top:8px;left:0;right:0;text-align:center;font-size:clamp(12px,1.8vw,19px);font-weight:700;letter-spacing:.12em;color:var(--muted)}
+.readings{position:absolute;left:0;right:0;top:50%;height:60%;transform:translateY(-50%);display:grid;grid-template-columns:12% 76% 12%;align-items:center;justify-items:center}
+.value{grid-column:2;grid-row:1;min-width:0;white-space:nowrap;font-weight:800;line-height:1;letter-spacing:-.065em;color:var(--fg);font-variant-numeric:tabular-nums}
+.side{grid-row:1;text-align:center;width:100%}.left{grid-column:1}.right{grid-column:3}
+.stat-label{font-size:clamp(10px,1.4vw,15px);font-weight:700;color:var(--muted)}
+.stat-number{font-size:clamp(20px,3.5vw,42px);font-weight:800;line-height:1.1}
+.bottom{position:absolute;bottom:14px;left:12px;right:12px;display:flex;align-items:center;justify-content:space-between}
+.unit{font-size:clamp(22px,5vw,44px);font-weight:800}
+.status{font-size:clamp(12px,2vw,18px);color:var(--muted);text-align:right}
+button{border:1px solid #777;border-radius:8px;background:var(--btnbg);color:var(--fg);padding:8px 10px;font-size:14px}
+#theme{position:fixed;top:8px;right:8px;z-index:5}
+#reset{position:fixed;bottom:54px;right:8px;z-index:5}
+#start{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:6;font-size:24px;padding:18px 28px}
+#note{position:fixed;bottom:72px;left:5%;width:90%;text-align:center;color:#e77;font-size:15px}
+.hidden{display:none!important}
 </style></head>
-<body><button id="theme" type="button" aria-label="Alternar cores">Fundo branco</button><button id="reset" type="button">Zerar</button><main><div class="top">ALIADO 2 · GPS · SOG <span style="font-size:10px;letter-spacing:0;opacity:.65">v8</span></div><div class="readings"><div class="stat side left"><div class="stat-label">MÁX</div><div id="maxspeed" class="stat-number">--.-</div></div><div id="value" class="value">--.-</div><div class="stat side right"><div class="stat-label">MÉDIA</div><div id="avgspeed" class="stat-number">--.-</div></div></div><div class="bottom"><div class="unit">NÓS</div><div id="status" class="status" aria-live="polite">Aguardando início</div></div></main><button id="start">Iniciar GPS</button><div id="note"></div>
+<body><button id="theme" type="button" aria-label="Alternar cores">Fundo branco</button><button id="reset" type="button">Zerar</button><main><div class="top">ALIADO 2 · GPS · SOG <span style="font-size:10px;letter-spacing:0;opacity:.65">v9</span></div><div class="readings"><div class="stat side left"><div class="stat-label">MÁX</div><div id="maxspeed" class="stat-number">--.-</div></div><div id="value" class="value">--.-</div><div class="stat side right"><div class="stat-label">MÉDIA</div><div id="avgspeed" class="stat-number">--.-</div></div></div><div class="bottom"><div class="unit">NÓS</div><div id="status" class="status" aria-live="polite">Aguardando início</div></div></main><button id="start">Iniciar GPS</button><div id="note"></div>
 <script>
 'use strict';
 const val=document.getElementById('value'),status=document.getElementById('status'),start=document.getElementById('start'),note=document.getElementById('note');
@@ -78,10 +51,19 @@ function setTheme(light){document.body.classList.toggle('light',light);themeButt
 try{setTheme(localStorage.getItem('aliado-theme')==='light')}catch(e){setTheme(false)}
 themeButton.addEventListener('click',()=>setTheme(!document.body.classList.contains('light')));
 function fitValue(){
- const w=document.querySelector('.readings').clientWidth||window.innerWidth;
- const h=document.querySelector('.readings').clientHeight||window.innerHeight*.7;
- const size=Math.max(36,Math.min(w*.235,h*.68));
- val.style.setProperty('font-size',Math.floor(size)+'px','important');
+ const w=window.innerWidth,h=window.innerHeight;
+ document.querySelector('main').style.height=h+'px';
+ const availableWidth=w*.74;
+ const availableHeight=h*.55;
+ const canvas=fitValue.canvas||(fitValue.canvas=document.createElement('canvas'));
+ const ctx=canvas.getContext('2d');
+ let size=Math.floor(availableHeight);
+ while(size>24){
+  ctx.font='800 '+size+'px Arial';
+  if(ctx.measureText('8.8').width<=availableWidth)break;
+  size-=3;
+ }
+ val.style.fontSize=size+'px';
 }
 window.addEventListener('resize',fitValue);
 
