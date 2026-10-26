@@ -25,8 +25,16 @@ main{padding:8px 12px 14px;justify-content:space-between}
 .stat-number{font-size:clamp(27px,5vw,65px);font-weight:800;line-height:1.1;font-variant-numeric:tabular-nums}
 #reset{position:fixed;right:8px;bottom:54px;z-index:5;border:1px solid var(--muted);border-radius:8px;background:var(--btnbg);color:var(--fg);padding:7px 10px;font-size:clamp(11px,1.6vw,15px)}
 @media(max-width:550px){.stats{flex-basis:22%;min-width:75px}.stat-number{font-size:clamp(22px,6vw,40px)}}
+
+/* Três colunas: máxima | velocidade principal | média */
+.readings{gap:4px;justify-content:space-between;align-items:center}
+.readings .side{flex:0 0 12%;min-width:58px;max-width:95px;align-self:center}
+.readings .side .stat-label{font-size:clamp(10px,1.4vw,15px)}
+.readings .side .stat-number{font-size:clamp(20px,3.5vw,42px)}
+.readings .value{flex:1 1 auto;min-width:0;text-align:center;line-height:.95;letter-spacing:-.075em;white-space:nowrap}
+@media(max-width:550px){.readings .side{flex-basis:12%;min-width:51px}.readings .side .stat-number{font-size:clamp(18px,4.5vw,30px)}}
 </style></head>
-<body><button id="theme" type="button" aria-label="Alternar cores">Fundo branco</button><button id="reset" type="button">Zerar</button><main><div class="top">ALIADO 2 · GPS · SOG</div><div class="readings"><div id="value" class="value">--.-</div><div class="stats"><div class="stat"><div class="stat-label">MÁX</div><div id="maxspeed" class="stat-number">--.-</div></div><div class="stat"><div class="stat-label">MÉDIA</div><div id="avgspeed" class="stat-number">--.-</div></div></div></div><div class="bottom"><div class="unit">NÓS</div><div id="status" class="status" aria-live="polite">Aguardando início</div></div></main><button id="start">Iniciar GPS</button><div id="note"></div>
+<body><button id="theme" type="button" aria-label="Alternar cores">Fundo branco</button><button id="reset" type="button">Zerar</button><main><div class="top">ALIADO 2 · GPS · SOG</div><div class="readings"><div class="stat side left"><div class="stat-label">MÁX</div><div id="maxspeed" class="stat-number">--.-</div></div><div id="value" class="value">--.-</div><div class="stat side right"><div class="stat-label">MÉDIA</div><div id="avgspeed" class="stat-number">--.-</div></div></div><div class="bottom"><div class="unit">NÓS</div><div id="status" class="status" aria-live="polite">Aguardando início</div></div></main><button id="start">Iniciar GPS</button><div id="note"></div>
 <script>
 'use strict';
 const val=document.getElementById('value'),status=document.getElementById('status'),start=document.getElementById('start'),note=document.getElementById('note');
@@ -54,12 +62,12 @@ try{setTheme(localStorage.getItem('aliado-theme')==='light')}catch(e){setTheme(f
 themeButton.addEventListener('click',()=>setTheme(!document.body.classList.contains('light')));
 function fitValue(){
  const area=document.querySelector('.readings');
- const stats=document.querySelector('.stats');
- const maxWidth=Math.max(70,area.clientWidth-stats.offsetWidth-8);
- const maxHeight=Math.max(60,area.clientHeight*.92);
- let size=Math.min(maxWidth*1.12,maxHeight);
+ const sides=[...document.querySelectorAll('.side')];
+ const availableWidth=area.clientWidth-sides.reduce((n,el)=>n+el.getBoundingClientRect().width,0)-8;
+ const availableHeight=area.clientHeight*.98;
+ let size=Math.min(availableHeight*1.20,Math.max(60,availableWidth*1.2));
  val.style.fontSize=size+'px';
- for(let i=0;i<30&&val.scrollWidth>maxWidth;i++){size*=.94;val.style.fontSize=size+'px';}
+ for(let i=0;i<40&&val.scrollWidth>availableWidth;i++){size*=.95;val.style.fontSize=size+'px';}
 }
 window.addEventListener('resize',fitValue);
 
