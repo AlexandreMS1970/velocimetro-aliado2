@@ -63,11 +63,18 @@ themeButton.addEventListener('click',()=>setTheme(!document.body.classList.conta
 function fitValue(){
  const area=document.querySelector('.readings');
  const sides=[...document.querySelectorAll('.side')];
- const availableWidth=area.clientWidth-sides.reduce((n,el)=>n+el.getBoundingClientRect().width,0)-8;
- const availableHeight=area.clientHeight*.98;
- let size=Math.min(availableHeight*1.20,Math.max(60,availableWidth*1.2));
- val.style.fontSize=size+'px';
- for(let i=0;i<40&&val.scrollWidth>availableWidth;i++){size*=.95;val.style.fontSize=size+'px';}
+ const availableWidth=Math.max(50,area.clientWidth-sides.reduce((n,el)=>n+el.getBoundingClientRect().width,0)-12);
+ const availableHeight=Math.max(50,area.clientHeight*.88);
+ const canvas=fitValue.canvas||(fitValue.canvas=document.createElement('canvas'));
+ const ctx=canvas.getContext('2d');
+ const sample='8.8';
+ let size=Math.min(availableHeight,availableWidth);
+ for(let i=0;i<30;i++){
+   ctx.font='800 '+size+'px Arial';
+   if(ctx.measureText(sample).width<=availableWidth && size*.95<=availableHeight)break;
+   size*=.94;
+ }
+ val.style.fontSize=Math.max(18,Math.floor(size))+'px';
 }
 window.addEventListener('resize',fitValue);
 
@@ -84,4 +91,5 @@ start.addEventListener('click',begin);
 document.addEventListener('visibilitychange',async()=>{if(document.visibilityState==='visible'&&watch!==null&&'wakeLock'in navigator){try{wake=await navigator.wakeLock.request('screen');}catch(e){}}});
 setInterval(()=>{if(watch!==null&&lastFix&&Date.now()-lastFix>12000){val.textContent='--.-';fitValue();status.textContent='Sem posição recente';}},2000);
 fitValue();
+window.addEventListener("load",fitValue);
 </script></body></html>
